@@ -113,7 +113,7 @@ class frontend_model_smarty extends Smarty{
 		 * @var void
 		 */
         $this->setPluginsDir(array(
-			self::setPath().'lib/smarty3/plugins/'
+			self::setPath().'lib/smarty4/plugins/'
 			,self::setPath().'app/wdcore/'
 			,self::setPath().'widget/'
 		));
@@ -139,6 +139,7 @@ class frontend_model_smarty extends Smarty{
 		 * compile (true/false)
 		 */
 		$this->compile_check = true;
+		$this->config_booleanize = false;
 		/**
 		 * Force compile
 		 * @var void

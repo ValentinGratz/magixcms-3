@@ -166,10 +166,9 @@ class frontend_controller_news extends frontend_db_news {
     }
 
     /**
-     * set Data from database
-     * @access private
+     * @return array
      */
-    private function getBuildTagList() {
+    public function getBuildTagList() : array {
 		$conditions = ' WHERE lang.iso_lang = :iso ';
 		//$tagsData = parent::fetchData(['context' => 'all', 'type' => 'tags', 'conditions' => $conditions],['iso' => $this->lang]);
         $tagsData = $this->getItems('tagsLang',['iso' => $this->lang],'all',false);
@@ -189,7 +188,7 @@ class frontend_controller_news extends frontend_db_news {
 	 * @param array $filter
 	 * @return array
 	 */
-	public function getNewsList(bool $count = false, array $filter = []) : array {
+	public function getNewsList(bool $count = false, $limit = false, array $filter = []) : array {
 		if(isset($this->filter)) $filter = $this->filter;
 
 		$newtableArray = [];
@@ -263,7 +262,7 @@ class frontend_controller_news extends frontend_db_news {
 			$params['date'] = $this->dateFormat->SQLDate();
 		}
 
-		if(!$count) $limit = [($this->page * $this->offset) . ', ' . $this->offset];
+		if(!$count) $limit = !$limit ? [($this->page * $this->offset) . ', ' . $this->offset] : [$limit] ;
 
 		if(!empty($joins)) $params['join'] = [$joins];
 		if(!empty($conditions)) $params['where'] = [$conditions];
@@ -472,14 +471,15 @@ class frontend_controller_news extends frontend_db_news {
                 'months' => $months
             ];
 		}*/
-        if(!empty($monthData)) {
+        if(!empty($monthsData)) {
             $year = '';
             foreach ($monthsData as $monthData) {
                 if($year !== $monthData['year']) $year = $monthData['year'];
                 if(!isset($archives[$year])) {
                     $archives[$year] = [
                         'year' => $year,
-                        'url' => $this->routingUrl->getBuildUrl(['type' => 'date',
+                        'url' => $this->routingUrl->getBuildUrl([
+							'type' => 'date',
                             'iso' => $this->lang,
                             'year' => $year
                         ])
@@ -487,7 +487,8 @@ class frontend_controller_news extends frontend_db_news {
                 }
                 $month = [
                     'month' => $monthData['month'],
-                    'url' => $this->routingUrl->getBuildUrl(['type' => 'date',
+                    'url' => $this->routingUrl->getBuildUrl([
+						'type' => 'date',
                         'iso' => $this->lang,
                         'year' => $year,
                         'month' => $monthData['month'],
@@ -501,6 +502,7 @@ class frontend_controller_news extends frontend_db_news {
     }
 
     public function run() {
+		$this->template->assign('tags',$this->getBuildTagList());
         if(isset($this->id) && isset($this->date)) {
             $this->template->breadcrumb->addItem(
                 $this->template->getConfigVars('news'),
@@ -511,7 +513,6 @@ class frontend_controller_news extends frontend_db_news {
             $this->template->display('news/news.tpl');
         }
         else {
-			$this->template->assign('tags',$this->getBuildTagList());
 			$this->template->assign('archives',$this->getBuildArchive());
 			$this->template->assign('news',$this->getNewsList());
 			$this->template->assign('nbp',$this->getNewsList(true));

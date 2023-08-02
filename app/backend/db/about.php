@@ -56,7 +56,6 @@ class backend_db_about {
 								JOIN mc_about_page_content AS c USING ( id_pages )
 								JOIN mc_lang AS lang ON ( c.id_lang = lang.id_lang )
 								WHERE c.id_lang = :default_lang AND p.id_parent IS NULL 
-								GROUP BY p.id_pages 
 							ORDER BY p.order_pages".$limit;
 
 					if(isset($config['search'])) {
@@ -254,9 +253,10 @@ class backend_db_about {
 			component_routing_db::layer()->insert($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
     }
 
 	/**
@@ -461,9 +461,11 @@ class backend_db_about {
 			component_routing_db::layer()->update($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 
 	/**
@@ -483,8 +485,10 @@ class backend_db_about {
 			component_routing_db::layer()->delete($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
 	}
 }

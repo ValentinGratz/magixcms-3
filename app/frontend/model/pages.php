@@ -77,7 +77,7 @@ class frontend_model_pages extends frontend_db_pages {
 	 * @param array $newRow
 	 * @return array
      */
-    public function setItemData(array $row, array $current, array $newRow = []) {
+    public function setItemData(array $row, $current, array $newRow = []): array {
     	$string_format = new component_format_string();
         $data = [];
 
@@ -90,13 +90,13 @@ class frontend_model_pages extends frontend_db_pages {
 				$this->initImageComponent();
 				$data['id'] = $row['id_pages'];
 				$data['id_parent'] = $row['id_parent'];
-                if(!empty($row['id_parent'])) {
+                if(!empty($row['id_parent']) && empty(array_diff(['parent_name','parent_url'],array_keys($row)))) {
                     $parentData = [
                         'id_pages' => $row['id_parent'],
                         'name_pages' => $row['parent_name'],
                         'iso_lang' => $row['iso_lang'],
                         'url_pages' => $row['parent_url'],
-                        'seo_title_pages' => $row['seo_title_parent'],
+                        'seo_title_pages' => $row['seo_title_parent'] ?: '',
                     ];
                     $data['parent'] = $this->setItemShortData($parentData);
                 }
@@ -109,7 +109,7 @@ class frontend_model_pages extends frontend_db_pages {
 					'url' => $row['url_pages']
 				]);
 				$data['active'] = false;
-				if ($row['id_pages'] == $current['controller']['id']) $data['active'] = true;
+				if (!empty($current) && $row['id_pages'] == $current['controller']['id']) $data['active'] = true;
 
 				if (isset($row['img'])) {
 					if(is_array($row['img'])) {
@@ -132,7 +132,7 @@ class frontend_model_pages extends frontend_db_pages {
 				}
 
 				$data['content'] = $row['content_pages'];
-				$data['resume'] = $row['resume_pages'] ?: ($row['content_pages'] ? $string_format->truncate(strip_tags($row['content_pages'])) : '');
+                $data['resume'] = $row['resume_pages'] ?: ($row['content_pages'] ? $string_format->clearHTMLTemplate($row['content_pages']) : '');
 				$data['menu'] = $row['menu_pages'];
 				$data['date']['update'] = $row['last_update'] ?? null;
 				$data['date']['register'] = $row['date_register'] ?? null;
@@ -145,8 +145,8 @@ class frontend_model_pages extends frontend_db_pages {
 					}
 				}
 			}
-			return $data;
         }
+        return $data;
     }
 
 	/**
@@ -349,9 +349,9 @@ class frontend_model_pages extends frontend_db_pages {
 			else {
 				$conditions .= ' WHERE lang.iso_lang = :iso AND c.published_pages = 1 AND (img.default_img = 1 OR img.default_img IS NULL) ';
 
-				/*if (isset($custom['select'])) {
+				if (isset($custom['select'])) {
 					$conditions .= ' AND (p.id_pages IN (' . (is_array($conf['id']) ? implode(',',$conf['id']) : $conf['id']) . ') OR p.id_parent IN (' . (is_array($conf['id']) ? implode(',',$conf['id']) : $conf['id']) . '))';
-				}*/
+				}
 
 				if (isset($custom['exclude'])) {
 					$conditions .= ' AND p.id_pages NOT IN (' . (is_array($conf['id']) ? implode(',',$conf['id']) : $conf['id']) . ') AND p.id_parent NOT IN (' . (is_array($conf['id']) ? implode(',',$conf['id']) : $conf['id']) . ')';

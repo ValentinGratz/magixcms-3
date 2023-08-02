@@ -28,8 +28,7 @@ class backend_db_category {
 							FROM mc_catalog_cat AS p
 								JOIN mc_catalog_cat_content AS c USING ( id_cat )
 								JOIN mc_lang AS lang ON ( c.id_lang = lang.id_lang )
-								WHERE c.id_lang = :default_lang AND p.id_parent IS NULL 
-								GROUP BY p.id_cat 
+								WHERE c.id_lang = :default_lang AND p.id_parent IS NULL  
 							ORDER BY p.order_cat".$limit;
 
 					if(isset($config['search'])) {
@@ -71,7 +70,6 @@ class backend_db_category {
 										LEFT JOIN mc_catalog_cat AS pa ON ( p.id_parent = pa.id_cat )
 										LEFT JOIN mc_catalog_cat_content AS ca ON ( pa.id_cat = ca.id_cat ) 
 										WHERE c.id_lang = :default_lang $cond
-										GROUP BY p.id_cat 
 									ORDER BY p.order_cat".$limit;
 						}
 					}
@@ -107,9 +105,8 @@ class backend_db_category {
 							JOIN mc_catalog_cat_content AS c USING ( id_cat )
 							JOIN mc_lang AS lang ON ( c.id_lang = lang.id_lang )
 							LEFT JOIN mc_catalog_cat AS pa ON ( p.id_parent = pa.id_cat )
-							LEFT JOIN mc_catalog_cat_content AS ca ON ( pa.id_cat = ca.id_cat ) 
-							WHERE p.id_parent = :id AND c.id_lang = :default_lang $cond
-							GROUP BY p.id_cat";
+							LEFT JOIN mc_catalog_cat_content AS ca ON ( pa.id_cat = ca.id_cat and ca.id_lang = c.id_lang ) 
+							WHERE p.id_parent = :id AND c.id_lang = :default_lang $cond";
 					break;
 				case 'pagesSelect':
 					$query = "SELECT p.id_parent,p.id_cat, c.name_cat , ca.name_cat AS parent_cat
@@ -118,8 +115,7 @@ class backend_db_category {
 							JOIN mc_lang AS lang ON ( c.id_lang = lang.id_lang )
 							LEFT JOIN mc_catalog_cat AS pa ON ( p.id_parent = pa.id_cat )
 							LEFT JOIN mc_catalog_cat_content AS ca ON ( pa.id_cat = ca.id_cat ) 
-							WHERE c.id_lang = :default_lang
-							GROUP BY p.id_cat 
+							WHERE c.id_lang = :default_lang 
 						ORDER BY p.id_cat DESC";
 					break;
 				case 'pagesPublishedSelect':
@@ -131,7 +127,6 @@ class backend_db_category {
 								LEFT JOIN mc_catalog_cat_content AS ca ON ( pa.id_cat = ca.id_cat ) 
 								WHERE c.id_lang = :default_lang
 								AND c.published_cat = 1
-								GROUP BY p.id_cat 
 							ORDER BY p.id_cat DESC";
 					break;
 				case 'page':
@@ -183,7 +178,6 @@ class backend_db_category {
 						JOIN mc_catalog_cat_content AS c USING ( id_cat )
 						JOIN mc_lang AS lang ON ( c.id_lang = lang.id_lang )
 						WHERE c.id_lang = :default_lang
-						GROUP BY p.id_cat 
 						ORDER BY p.id_cat DESC
 						LIMIT 5";
 					break;
@@ -243,7 +237,7 @@ class backend_db_category {
 			case 'page':
 				$cond = $params['id_parent'] != NULL ? 'IN ('.$params['id_parent'].')' : 'IS NULL' ;
 				$query = "INSERT INTO `mc_catalog_cat`(id_parent,menu_cat,order_cat,date_register) 
-						SELECT :id_parent,:menu_cat,COUNT(id_cat),NOW() FROM mc_catalog_cat WHERE id_parent $cond";
+						SELECT :id_parent,:menu_cat,count(order_cat),NOW() FROM mc_catalog_cat WHERE id_parent $cond ORDER BY order_cat desc LIMIT 0,1";
 				break;
 			case 'content':
 				$query = 'INSERT INTO `mc_catalog_cat_content`(id_cat,id_lang,name_cat,url_cat,resume_cat,content_cat,seo_title_cat,seo_desc_cat,published_cat) 
@@ -257,9 +251,11 @@ class backend_db_category {
 			component_routing_db::layer()->insert($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 
 	/**
@@ -325,9 +321,11 @@ class backend_db_category {
 			component_routing_db::layer()->update($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
 	}
 
 	/**
@@ -353,8 +351,10 @@ class backend_db_category {
 			component_routing_db::layer()->delete($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 }

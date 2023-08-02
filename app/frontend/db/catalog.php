@@ -91,7 +91,7 @@ class frontend_db_catalog {
                     $where = '';
                     if(isset($params['where']) && is_array($params['where'])) {
                         $newWhere = [];
-                        foreach ($params['where'] as $value) { $newWhere[] = array_merge($newWhere, $value); }
+                        foreach ($params['where'] as $value) { $newWhere = array_merge($newWhere, $value); }
                         foreach ($newWhere as $item) { $where .= ' '.$item['type'].' '.$item['condition'].' '; }
                         unset($params['where']);
                     }
@@ -120,10 +120,13 @@ class frontend_db_catalog {
                     if(isset($params['join']) && is_array($params['join'])) {
                         $newJoin = [];
                         foreach ($params['join'] as $value) { $newJoin = array_merge($newJoin, $value); }
-                        foreach ($newJoin as $join) { $joins .= ' '.$join['type'].' '.$join['table'].' '.$join['as'].' ON ('.$join['on']['table'].'.'.$join['on']['key'].' = '.$join['as'].'.'.$join['on']['key'].') '; }
+                        foreach ($newJoin as $join) {
+                            $key = isset($join['on']['newkey']) ? $join['on']['newkey'] : $join['on']['key'];
+                            $joins .= ' '.$join['type'].' '.$join['table'].' '.$join['as'].' ON ('.$join['on']['table'].'.'.$join['on']['key'].' = '.$join['as'].'.'.$key .') ';
+                        }
                         unset($params['join']);
                     }
-                    if(!isset($params['order']) && !is_array($params['order'])) $order = ' ORDER BY cat.order_cat';
+                    if(!isset($params['order']) || !is_array($params['order'])) $order = ' ORDER BY cat.order_cat';
                     if(isset($params['order']) && is_array($params['order'])){
                         $order = ' ORDER BY ';
                         $orders = [];
@@ -170,7 +173,7 @@ class frontend_db_catalog {
                                 AND mcpc.published_p = 1
                                 ".$nbwhere."
                                 GROUP BY id_cat, id_lang
-                            ) as products ON (cat.id_cat = products.id_cat AND products.id_lang = lang.id_lang)".$joins.$where
+                            ) as products ON (cat.id_cat = products.id_cat AND products.id_lang = lang.id_lang)".$joins." WHERE lang.iso_lang = :iso AND catc.published_cat = 1 ".$where
                         .$order.$limit;
                     break;
 				case 'rand_category':
@@ -272,12 +275,12 @@ class frontend_db_catalog {
 
                         unset($params['join']);
                     }
-                    if($params['id_cat']){
+                    if(isset($params['id_cat'])){
                         $cat = 'AND catalog.default_c = 1 AND catalog.id_product IN (SELECT id_product FROM mc_catalog WHERE id_cat = :id_cat)';
                     }else{
                         $cat = '';
                     }
-                    if(!isset($params['order']) && !is_array($params['order'])) {
+                    if(!isset($params['order']) || !is_array($params['order'])) {
                         $order = ' ORDER BY catalog.order_p ASC';
                     }
 
@@ -410,8 +413,8 @@ class frontend_db_catalog {
                     }
 
                     $select = ['catalog.*',
-                        'cat.name_cat',
-                        'cat.url_cat',
+                        'cc.name_cat',
+                        'cc.url_cat',
                         'p.*',
                         'pc.name_p',
                         'pc.longname_p',
@@ -449,7 +452,7 @@ class frontend_db_catalog {
                         unset($params['join']);
                     }
 
-                    if(!isset($params['order']) && !is_array($params['order'])) {
+                    if(!isset($params['order']) || !is_array($params['order'])) {
                         $order = '';
                     }
 
@@ -477,17 +480,17 @@ class frontend_db_catalog {
 
                     $sql = 'SELECT '.implode(',', $select).'
 						FROM mc_catalog_product_rel AS rel
-						JOIN mc_catalog AS catalog ON (rel.id_product_2 = catalog.id_product)
-						JOIN mc_catalog_cat AS c ON ( catalog.id_cat = c.id_cat )
-						JOIN mc_catalog_cat_content AS cat ON ( c.id_cat = cat.id_cat )
-						JOIN mc_catalog_product AS p ON ( catalog.id_product = p.id_product )
+						JOIN mc_catalog_product AS p ON ( rel.id_product_2 = p.id_product )
 						JOIN mc_catalog_product_content AS pc ON ( p.id_product = pc.id_product )
+						LEFT JOIN mc_catalog AS catalog ON (p.id_product = catalog.id_product)
+						LEFT JOIN mc_catalog_cat AS c ON ( catalog.id_cat = c.id_cat AND catalog.default_c = 1 )
+						LEFT JOIN mc_catalog_cat_content AS cc ON ( c.id_cat = cc.id_cat AND pc.id_lang = cc.id_lang)
 						LEFT JOIN mc_catalog_product_img AS img ON (p.id_product = img.id_product)
 						LEFT JOIN mc_catalog_product_img_content AS imgc ON (imgc.id_img = img.id_img and pc.id_lang = imgc.id_lang)
-						JOIN mc_lang AS lang ON ( pc.id_lang = lang.id_lang ) AND (cat.id_lang = lang.id_lang)
+						JOIN mc_lang AS lang ON ( pc.id_lang = lang.id_lang)
 						'.$joins.'
 						WHERE lang.iso_lang = :iso AND rel.id_product = :id 
-						AND pc.published_p = 1 AND cat.published_cat = 1 AND catalog.default_c = 1 
+						AND pc.published_p = 1 AND cc.published_cat = 1 AND catalog.default_c = 1 
 						AND (img.default_img = 1 OR img.default_img IS NULL) 
 						 '.$where
                         .$order.$limit;

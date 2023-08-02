@@ -69,6 +69,9 @@ class backend_db_domain {
 						WHERE dl.id_domain = :id
 						ORDER BY dl.id_domain_lg DESC LIMIT 0,1';
 					break;
+                case 'defaultDomain':
+                    $query = 'SELECT d.* FROM mc_domain AS d WHERE d.default_domain = 1';
+                    break;
 				default:
 					return false;
 			}
@@ -105,9 +108,11 @@ class backend_db_domain {
 			component_routing_db::layer()->insert($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 
 	/**
@@ -144,9 +149,11 @@ class backend_db_domain {
 			component_routing_db::layer()->update($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 
 	/**
@@ -172,8 +179,10 @@ class backend_db_domain {
 			component_routing_db::layer()->delete($query,$params);
 			return true;
 		}
-		catch (Exception $e) {
-			return 'Exception reçue : '.$e->getMessage();
-		}
+        catch (Exception $e) {
+            if(!isset($this->logger)) $this->logger = new debug_logger(MP_LOG_DIR);
+            $this->logger->log('statement','db',$e->getMessage(),$this->logger::LOG_MONTH);
+        }
+        return false;
     }
 }

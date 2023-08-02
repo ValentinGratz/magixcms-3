@@ -84,7 +84,7 @@ class frontend_model_product {
 			$this->initImageComponent();
 			$data['short_name']= $row['name_p'];
 			$data['name']      = $row['name_p'];
-			$data['long_name'] = $row['longname_p'];
+			$data['long_name'] = $row['longname_p'] ?? null;
 			$data['url'] = $this->routingUrl->getBuildUrl([
 				'type' => 'product',
 				'iso' => $row['iso_lang'],
@@ -96,7 +96,7 @@ class frontend_model_product {
 			// Base url for product
 			$data['baseUrl']       = $row['url_p'];
 			$data['active'] = false;
-			if ($row['id_product'] == $active['controller']['id']) $data['active'] = true;
+			if(!empty($active)) if ($row['id_product'] == $active['controller']['id']) $data['active'] = true;
 			$data['id']        = $row['id_product'];
 			$data['id_parent'] = $row['id_cat'];
 			$data['url_parent'] = $this->routingUrl->getBuildUrl([
@@ -108,11 +108,11 @@ class frontend_model_product {
 			$data['cat']       = $row['name_cat'];
 			$data['id_lang']   = $row['id_lang'];
 			$data['iso']       = $row['iso_lang'];
-			$data['price']     = $row['price_p'];
-			$data['reference'] = $row['reference_p'];
-			$data['content']   = $row['content_p'];
-			$data['resume']    = $row['resume_p'] ? $row['resume_p'] : ($row['content_p'] ? $string_format->truncate(strip_tags($row['content_p'])) : '');
-			$data['order']     = isset($row['order_p']) ? $row['order_p'] : null;
+			$data['price']     = $row['price_p'] ?? null;
+			$data['reference'] = $row['reference_p'] ?? null;
+			$data['content']   = $row['content_p'] ?? null;
+			$data['resume']    = $row['resume_p'] ?? (($row['content_p']) ? $string_format->clearHTMLTemplate($row['content_p']) : '');
+			$data['order']     = $row['order_p'] ?? null;
 			if (isset($row['img'])) {
 				if(is_array($row['img'])) {
 					foreach ($row['img'] as $val) {
@@ -140,15 +140,15 @@ class frontend_model_product {
 			}
 			
 			if (!isset($row['seo_title_p']) || empty($row['seo_title_p'])) {
-				$seoTitle = $this->seo->replace_var_rewrite($row['name_cat'],$data['name'],'title');
-				$data['seo']['title'] = $seoTitle ? $seoTitle : $data['name'];
+				$seoTitle = $this->seo->replace_var_rewrite($row['name_cat'] ?? '',$data['name'],'title');
+				$data['seo']['title'] = $seoTitle ?: $data['name'];
 			}
 			else {
 				$data['seo']['title'] = $row['seo_title_p'];
 			}
 			if (!isset($row['seo_desc_p']) || empty($row['seo_desc_p'])) {
-				$seoDesc = $this->seo->replace_var_rewrite($row['name_cat'],$data['name'],'description');
-				$data['seo']['description'] = $seoDesc ? $seoDesc : ($data['resume'] ? $data['resume'] : $data['seo']['title']);
+				$seoDesc = $this->seo->replace_var_rewrite($row['name_cat'] ?? '',$data['name'],'description');
+				$data['seo']['description'] = $seoDesc ?: ($data['resume'] ?: $data['seo']['title']);
 			}
 			else {
 				$data['seo']['description'] = $row['seo_desc_p'];

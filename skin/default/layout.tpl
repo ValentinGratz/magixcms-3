@@ -36,11 +36,12 @@
     {* Please try to use icomoon to create a small iconfont and reduce load work, uncomment the next lines if you use icofont *}
     <link rel="preload" href="{$url}/skin/{$theme}/fonts/Icofont.ttf" as="font" type="font/ttf" crossorigin="anonymous">
     <link rel="preload" href="{$url}/skin/{$theme}/fonts/Icofont.woff" as="font" type="font/woff" crossorigin="anonymous">
-    {if $smarty.cookies.complianceCookie !== 'true'}<link rel="preload" href="{$url}/img/cookie.svg" as="image" type="image/svg+xml">{/if}
+    {if !$consentAsked}<link rel="preload" href="{$url}/img/cookie.svg" as="image" type="image/svg+xml">{/if}
     <meta name="theme-color" content="#3C62AA" />
     {nocache}{$basecss = [
     "properties",
     "{$viewport}",
+    "cookie",
     "content"
     ]}
     {if $setting['maintenance'] === '1'}{$basecss[] = "maintenance"}{/if}
@@ -93,6 +94,7 @@
 "/skin/{$theme}/js/vendor/{if $setting.mode === 'dev'}src/{/if}simpleLightbox{if $setting.mode !== 'dev'}.min{/if}.js",
 "/skin/{$theme}/js/vendor/{if $setting.mode === 'dev'}src/{/if}tiny-slider{if $setting.mode !== 'dev'}.min{/if}.js",
 "/skin/{$theme}/js/{if $setting.mode === 'dev'}src/{/if}polyfill{if $setting.mode !== 'dev'}.min{/if}.js",
+"/skin/{$theme}/js/{if $setting.mode === 'dev'}src/{/if}consent{if $setting.mode !== 'dev'}.min{/if}.js",
 "/skin/{$theme}/js/{if $setting.mode === 'dev'}src/{/if}affixhead{if $setting.mode !== 'dev'}.min{/if}.js",
 "/skin/{$theme}/js/{if $setting.mode === 'dev'}src/{/if}global{if $setting.mode !== 'dev'}.min{/if}.js"
 ]
