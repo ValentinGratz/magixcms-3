@@ -1,6 +1,6 @@
 <?php
 class backend_controller_product extends backend_db_product {
-	public $edit, $action, $tabs, $search;
+	public $edit, $action, $tabs, $search, $tab;
 	protected $message, $template, $header, $progress, $data, $modelLanguage, $collectionLanguage, $order, $upload, $config, $imagesComponent, $dbCategory,$routingUrl;
 	public $controller,$id_product, $id_img, $parent_id, $content, $productData, $imgData, $img_multiple, $editimg, $product_cat, $parent, $default_cat,$product_id, $id_product_2,$ajax,$tableaction,$tableform,$iso,$name_img,$plugin,$tables,
         $columns, $module, $assign;
@@ -45,6 +45,7 @@ class backend_controller_product extends backend_db_product {
 		if (http_request::isGet('action')) $this->action = $formClean->simpleClean($_GET['action']);
 		elseif (http_request::isPost('action')) $this->action = $formClean->simpleClean($_POST['action']);
         if (http_request::isGet('tabs')) $this->tabs = $formClean->simpleClean($_GET['tabs']);
+        if (http_request::isGet('tab')) $this->tab = $formClean->simpleClean($_GET['tab']);
 		if (http_request::isGet('editimg')) $this->editimg = $formClean->numeric($_GET['editimg']);
 		if (http_request::isGet('parentid')) $this->parent_id = $formClean->numeric($_GET['parentid']);
         if (http_request::isGet('product_id')) $this->product_id = $formClean->numeric($_GET['product_id']);
@@ -369,32 +370,34 @@ class backend_controller_product extends backend_db_product {
 		$conf = array();
 
 		foreach ($data as $page) {
-
 			//$publicUrl = !empty($page['url_p']) ? '/' . $page['iso_lang'] . '/' . $page['id_product'] . '-' . $page['url_p'] . '/' : '';
 			if (!array_key_exists($page['id_product'], $arr)) {
-				$arr[$page['id_product']] = array();
-				$arr[$page['id_product']]['id_product'] = $page['id_product'];
-				$arr[$page['id_product']]['price_p'] = $page['price_p'];
-				$arr[$page['id_product']]['reference_p'] = $page['reference_p'];
-				$arr[$page['id_product']]['width_p'] = $page['width_p'];
-				$arr[$page['id_product']]['height_p'] = $page['height_p'];
-				$arr[$page['id_product']]['depth_p'] = $page['depth_p'];
-				$arr[$page['id_product']]['weight_p'] = $page['weight_p'];
-				$arr[$page['id_product']]['date_register'] = $page['date_register'];
+				$arr[$page['id_product']] = [
+					'id_product' => $page['id_product'],
+					'price_p' => $page['price_p'],
+					'reference_p' => $page['reference_p'],
+					'width_p' => $page['width_p'],
+					'height_p' => $page['height_p'],
+					'depth_p' => $page['depth_p'],
+					'weight_p' => $page['weight_p'],
+					'date_register' => $page['date_register']
+				];
 			}
-			$arr[$page['id_product']]['content'][$page['id_lang']] = array(
+			$arr[$page['id_product']]['content'][$page['id_lang']] = [
 				'id_lang' => $page['id_lang'],
 				'iso_lang' => $page['iso_lang'],
 				'name_p' => $page['name_p'],
 				'longname_p' => $page['longname_p'],
 				'url_p' => $page['url_p'],
+				'link_label_pp' => $page['link_label_p'],
+				'link_title_pp' => $page['link_title_p'],
 				'resume_p' => $page['resume_p'],
 				'content_p' => $page['content_p'],
-                'seo_title_p'     => $page['seo_title_p'],
-                'seo_desc_p'      => $page['seo_desc_p'],
+				'seo_title_p' => $page['seo_title_p'],
+				'seo_desc_p' => $page['seo_desc_p'],
 				'published_p' => $page['published_p']/*,
 				'public_url' => $publicUrl*/
-			);
+			];
 		}
 		return $arr;
 	}
@@ -518,6 +521,7 @@ class backend_controller_product extends backend_db_product {
 		switch ($data['type']) {
 			case 'product':
 			case 'content':
+            case 'properties':
 			case 'img':
             case 'imgContent':
 			//case 'img':
@@ -793,6 +797,8 @@ class backend_controller_product extends backend_db_product {
                                     $content['longname_p'] = (!empty($content['longname_p']) ? $content['longname_p'] : NULL);
                                     $content['resume_p'] = (!empty($content['resume_p']) ? $content['resume_p'] : NULL);
                                     $content['content_p'] = (!empty($content['content_p']) ? $content['content_p'] : NULL);
+                                    $content['link_label_p'] = (!empty($content['link_label_p']) ? $content['link_label_p'] : NULL);
+                                    $content['link_title_p'] = (!empty($content['link_title_p']) ? $content['link_title_p'] : NULL);
                                     $content['seo_title_p'] = (!empty($content['seo_title_p']) ? $content['seo_title_p'] : NULL);
                                     $content['seo_desc_p'] = (!empty($content['seo_desc_p']) ? $content['seo_desc_p'] : NULL);
 
@@ -908,6 +914,30 @@ class backend_controller_product extends backend_db_product {
 								else {
                                     usleep(200000);
                                     $this->progress->sendFeedback(['message' => $this->template->getConfigVars('creating_thumbnails_error'), 'progress' => 100, 'status' => 'error', 'error_code' => 'error_data']);
+                                }
+                            }else{
+                                if(isset($this->tab)){
+                                    switch ($this->tab){
+                                        case 'properties':
+                                            $this->productData['width'] = !empty($this->productData['width']) ? number_format(str_replace(",", ".", $this->productData['width']), 2, '.', '') : '0';
+                                            $this->productData['weight'] = !empty($this->productData['weight']) ? number_format(str_replace(",", ".", $this->productData['weight']), 2, '.', '') : '0';
+                                            $this->productData['depth'] = !empty($this->productData['depth']) ? number_format(str_replace(",", ".", $this->productData['depth']), 2, '.', '') : '0';
+                                            $this->productData['height'] = !empty($this->productData['height']) ? number_format(str_replace(",", ".", $this->productData['height']), 2, '.', '') : '0';
+
+                                            $this->upd(array(
+                                                'type' => 'properties',
+                                                'data' => array(
+                                                    'id_product' => $this->id_product,
+                                                    'width_p' => $this->productData['width'],
+                                                    'weight_p' => $this->productData['weight'],
+                                                    'depth_p' => $this->productData['depth'],
+                                                    'height_p' => $this->productData['height']
+                                                )
+                                            ));
+                                            $this->message->json_post_response(true, 'update', array('result' => $this->id_product));
+
+                                            break;
+                                    }
                                 }
                             }
                         }

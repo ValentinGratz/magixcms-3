@@ -120,6 +120,8 @@ class backend_db_product {
                         'p.price_p',
                         'pc.resume_p' ,
                         'pc.content_p',
+                        'pc.link_label_p',
+                        'pc.link_title_p',
                         'pc.seo_title_p',
                         'pc.seo_desc_p',
                         'IFNULL(pi.default_img,0) as default_img',
@@ -282,6 +284,8 @@ class backend_db_product {
 								p.id_product,
 								pc.name_p,
 								pc.url_p,
+								pc.link_label_p,
+								pc.link_title_p,
 								cc.id_cat as id_parent,
 								ccc.name_cat as name_parent,
 								ccc.url_cat as url_parent,
@@ -378,12 +382,22 @@ class backend_db_product {
 							url_p = :url_p,
 							resume_p = :resume_p,
 							content_p = :content_p,
+							link_label_p = :link_label_p,
+							link_title_p = :link_title_p,
 							seo_title_p = :seo_title_p, 
                             seo_desc_p = :seo_desc_p,
 							published_p = :published_p
 							WHERE id_product = :id_product 
                 		AND id_lang = :id_lang';
 				break;
+            case 'properties':
+                $query = 'UPDATE mc_catalog_product SET 
+                          width_p = :width_p, 
+                          weight_p = :weight_p, 
+                          depth_p = :depth_p, 
+                          height_p= :height_p
+                        WHERE id_product = :id_product';
+                break;
 			case 'imgContent':
 				$query = 'UPDATE mc_catalog_product_img_content 
 						SET 

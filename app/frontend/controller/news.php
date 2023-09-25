@@ -206,30 +206,34 @@ class frontend_controller_news extends frontend_db_news {
 		$conditions = [];
 
 		if(isset($this->tag) || isset($this->tags)) {
-			$joins[] = [
-				'type' => 'LEFT JOIN',
-				'table' => 'mc_news_tag_rel',
-				'as' => 'mntr',
-				'on' => [
-					'table' => 'mn',
-					'key' => 'id_news'
-				]
-			];
+			if(isset($this->tags)) $this->tags = collections_ArrayTools::ArrayCleaner($this->tags);
 
-			if (isset($this->tags)) {
-				$conditions[] = [
-					'type' => 'AND',
-					'condition' => 'mntr.id_tag IN('.implode(',',$this->tags).')'
+			if(!empty($this->tag) || !empty($this->tags)) {
+				$joins[] = [
+					'type' => 'LEFT JOIN',
+					'table' => 'mc_news_tag_rel',
+					'as' => 'mntr',
+					'on' => [
+						'table' => 'mn',
+						'key' => 'id_news'
+					]
 				];
-				$params['group'] = [['mn.id_news']];
-				$params['having'] = [['COUNT(mn.id_news) = '.count($this->tags)]];
-			}
-			elseif (isset($this->tag)) {
-				$conditions[] = [
-					'type' => 'AND',
-					'condition' => 'mntr.id_tag = :tag'
-				];
-				$params['tag'] = $this->tag;
+
+				if (!empty($this->tags)) {
+					$conditions[] = [
+						'type' => 'AND',
+						'condition' => 'mntr.id_tag IN('.implode(',',$this->tags).')'
+					];
+					$params['group'] = [['mn.id_news']];
+					$params['having'] = [['COUNT(mn.id_news) = '.count($this->tags)]];
+				}
+				elseif (!empty($this->tag)) {
+					$conditions[] = [
+						'type' => 'AND',
+						'condition' => 'mntr.id_tag = :tag'
+					];
+					$params['tag'] = $this->tag;
+				}
 			}
 		}
 		if(isset($this->date)) {
@@ -429,7 +433,13 @@ class frontend_controller_news extends frontend_db_news {
     private function getData($type) {
         switch($type){
             case 'tag':
-            	$this->getItems('tag',$this->tag,'one');
+            	$data = $this->getItems('tag',$this->tag,'one',false);
+                $tag = [];
+                $tag['id'] = $data['id'];
+                $tag['name'] = $data['name'];
+                $tag['seo'] = $this->modelNews->tagSeo($data['name']);
+                $this->template->assign('tag',$tag);
+                $this->template->breadcrumb->addItem($this->template->getConfigVars('theme').': '.$data['name']);
                 break;
             case 'id':
                 $data = $this->getBuildNewsItems();
@@ -542,8 +552,7 @@ class frontend_controller_news extends frontend_db_news {
                     '/'.$this->template->lang.($this->template->is_amp() ? '/amp' : '').'/news/',
                     $this->template->getConfigVars('news')
                 );
-                $this->template->breadcrumb->addItem($this->template->getConfigVars('theme').': '.$this->tag);
-				$this->getData('tag');
+                $this->getData('tag');
 				$this->template->display('news/tag.tpl');
 			}
 			else {

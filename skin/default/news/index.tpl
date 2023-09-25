@@ -1,6 +1,6 @@
 {extends file="layout.tpl"}
-{block name="title" nocache}{$rootSeo['title']}{/block}
-{block name="description" nocache}{$rootSeo['description']}{/block}
+{block name="title" nocache}{if isset($smarty.get.page)}{$rootSeo['title']|cat:' - page '|cat:$smarty.get.page}{else}{$rootSeo['title']}{/if}{/block}
+{block name="description" nocache}{if isset($smarty.get.page)}{$rootSeo['description']|cat:' - page '|cat:$smarty.get.page}{else}{$rootSeo['description']}{/if}{/block}
 {block name='body:id'}news{/block}
 {block name='body:class'}news-page{/block}
 {block name="webType"}CollectionPage{/block}
@@ -19,6 +19,7 @@
                     {strip}<h1 itemprop="name">
                         {#news#|ucfirst}
                         {if isset($tag)}<small> - <span itemprop="about">{$tag.name|ucfirst}</span></small>{/if}
+                        {if isset($smarty.get.page)}<small> - page {$smarty.get.page}</small>{/if}
                         {if isset($smarty.get.date) || isset($smarty.get.year) || isset($monthName)}<small> - <span>{if $smarty.get.date}{$smarty.get.date|date_format:'%e %B %Y'}{elseif isset($monthName)}{$monthName} {$smarty.get.year}{elseif isset($smarty.get.year)}{$smarty.get.year}{/if}</span></small>{/if}
                     </h1>{/strip}
                     {/block}

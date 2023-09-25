@@ -93,6 +93,10 @@ class frontend_model_product {
 				'id_parent' => $row['id_cat'],
 				'url_parent' => $row['url_cat']
 			]);
+			$data['link'] = [
+				'label' => $row['link_label_p'],
+				'title' => $row['link_title_p']
+			];
 			// Base url for product
 			$data['baseUrl']       = $row['url_p'];
 			$data['active'] = false;
@@ -105,18 +109,28 @@ class frontend_model_product {
 				'id' => $row['id_cat'],
 				'url' => $row['url_cat']
 			]);
+			$data['link_parent'] = [
+				'label' => $row['link_label_cat'],
+				'title' => $row['link_title_cat']
+			];
 			$data['cat']       = $row['name_cat'];
 			$data['id_lang']   = $row['id_lang'];
 			$data['iso']       = $row['iso_lang'];
 			$data['price']     = $row['price_p'] ?? null;
 			$data['reference'] = $row['reference_p'] ?? null;
+            $data['properties'] = [
+                'width' => $row['width_p'] ?? null,
+                'height' => $row['height_p'] ?? null,
+                'depth' => $row['depth_p'] ?? null,
+                'weight' => $row['weight_p'] ?? null
+            ];
 			$data['content']   = $row['content_p'] ?? null;
 			$data['resume']    = $row['resume_p'] ?? (($row['content_p']) ? $string_format->clearHTMLTemplate($row['content_p']) : '');
 			$data['order']     = $row['order_p'] ?? null;
 			if (isset($row['img'])) {
 				if(is_array($row['img'])) {
 					foreach ($row['img'] as $val) {
-						$image = $this->imagesComponent->setModuleImage('catalog','product',$val['name_img'],$row['id_product']);
+						$image = $this->imagesComponent->setModuleImage('catalog','product',$val['name_img'],$row['id_product'],$val['alt_img'] ?? $row['name_p'], $val['title_img'] ?? $row['name_p']);
 						if($val['default_img']) {
 							$data['img'] = $image;
 							$image['default'] = 1;
@@ -128,7 +142,7 @@ class frontend_model_product {
 			}
 			else {
 				if(isset($row['name_img'])) {
-					$data['img'] = $this->imagesComponent->setModuleImage('catalog','product',$row['name_img'],$row['id_product']);
+					$data['img'] = $this->imagesComponent->setModuleImage('catalog','product',$row['name_img'],$row['id_product'],$row['alt_img'] ?? $row['name_p'], $row['title_img'] ?? $row['name_p']);
 				}
 				$data['img']['default'] = $this->imagesComponent->setModuleImage('catalog','product');
 			}

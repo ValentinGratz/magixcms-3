@@ -3,17 +3,17 @@ class backend_controller_news extends backend_db_news {
     public $edit, $action, $tabs, $search, $plugin, $controller, $lang;
     protected $message, $template, $header, $data, $modelLanguage, $collectionLanguage, $order, $upload, $config, $imagesComponent, $modelPlugins,$makeFiles,$finder,$routingUrl;
     public $id_news,$content,$news,$img,$id_lang,$name_tag,$del_img,$ajax,$tableaction,$tableform,$iso,$name_img;
-	public $tableconfig = array(
+	public $tableconfig = [
 		'id_news',
 		'name_news',
 		'content_news' => ['type' => 'bin', 'input' => null],
 		'img_news' => ['type' => 'bin', 'input' => null, 'class' => ''],
-        'seo_title_news' => array('title' => 'seo_title', 'class' => '', 'type' => 'bin', 'input' => null),
-        'seo_desc_news' => array('title' => 'seo_desc', 'class' => '', 'type' => 'bin', 'input' => null),
+		'seo_title_news' => ['title' => 'seo_title', 'class' => '', 'type' => 'bin', 'input' => null],
+		'seo_desc_news' => ['title' => 'seo_desc', 'class' => '', 'type' => 'bin', 'input' => null],
 		'last_update' => ['title' => 'last_update', 'input' => ['type' => 'text', 'class' => 'date-input']],
 		'date_publish',
 		'published_news'
-	);
+	];
 
     /**
      * backend_controller_news constructor.
@@ -212,24 +212,26 @@ class backend_controller_news extends backend_db_news {
                 $tags = '';
             }
 
-            $arr[$page['id_news']]['content'][$page['id_lang']] = array(
-                'id_lang'           => $page['id_lang'],
-                'iso_lang'          => $page['iso_lang'],
-                'name_news'         => $page['name_news'],
-                'url_news'          => $page['url_news'],
-                'resume_news'       => $page['resume_news'],
-                'content_news'      => $page['content_news'],
-				'alt_img'     		=> $page['alt_img'],
-				'title_img'     	=> $page['title_img'],
-				'caption_img'       => $page['caption_img'],
-                'seo_title_news'    => $page['seo_title_news'],
-                'seo_desc_news'     => $page['seo_desc_news'],
-                'date_publish'      => $datePublish,
-                'published_news'    => $page['published_news'],
-                'public_url'        => $publicUrl,
-                'tags_news'         => $page['tags_news'],
-                'tags'              => $tags
-            );
+            $arr[$page['id_news']]['content'][$page['id_lang']] = [
+				'id_lang' => $page['id_lang'],
+				'iso_lang' => $page['iso_lang'],
+				'name_news' => $page['name_news'],
+				'url_news' => $page['url_news'],
+				'resume_news' => $page['resume_news'],
+				'content_news' => $page['content_news'],
+				'alt_img' => $page['alt_img'],
+				'title_img' => $page['title_img'],
+				'caption_img' => $page['caption_img'],
+				'link_label_news' => $page['link_label_news'],
+				'link_title_news' => $page['link_title_news'],
+				'seo_title_news' => $page['seo_title_news'],
+				'seo_desc_news' => $page['seo_desc_news'],
+				'date_publish' => $datePublish,
+				'published_news' => $page['published_news'],
+				'public_url' => $publicUrl,
+				'tags_news' => $page['tags_news'],
+				'tags' => $tags
+			];
         }
 
         return $arr;
@@ -267,10 +269,12 @@ class backend_controller_news extends backend_db_news {
 			$data['id_lang'] = $lang;
 			$data['id_news'] = $id;
 			$data['published_news'] = (!isset($content['published_news']) ? 0 : 1);
-			$content['resume_news'] = (!empty($content['resume_news']) ? $content['resume_news'] : NULL);
-			$content['content_news'] = (!empty($content['content_news']) ? $content['content_news'] : NULL);
-			$content['seo_title_news'] = (!empty($content['seo_title_news']) ? $content['seo_title_news'] : NULL);
-			$content['seo_desc_news'] = (!empty($content['seo_desc_news']) ? $content['seo_desc_news'] : NULL);
+            $data['resume_news'] = (!empty($content['resume_news']) ? $content['resume_news'] : NULL);
+            $data['content_news'] = (!empty($content['content_news']) ? $content['content_news'] : NULL);
+            $data['link_label_news'] = (!empty($content['link_label_news']) ? $content['link_label_news'] : NULL);
+            $data['link_title_news'] = (!empty($content['link_title_news']) ? $content['link_title_news'] : NULL);
+            $data['seo_title_news'] = (!empty($content['seo_title_news']) ? $content['seo_title_news'] : NULL);
+            $data['seo_desc_news'] = (!empty($content['seo_desc_news']) ? $content['seo_desc_news'] : NULL);
 			if (empty($content['url_news'])) {
 				$data['url_news'] = http_url::clean($content['name_news'],
 					array(
